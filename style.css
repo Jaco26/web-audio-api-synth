@@ -1,0 +1,46 @@
+.container {
+  display: block;
+  width: 80%;
+  margin: auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.flex-row {
+  display: flex;
+  margin: 1em;
+  background-color: aliceblue;
+}
+
+.flex {
+  margin: 5px;
+  padding: 5px;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.f1 {
+  flex: 1;
+}
+
+.f2 {
+  flex: 2;
+}
+
+.f3 {
+  flex: 3;
+}
+
+.f4 {
+  flex: 4;
+}
+
+.f5 {
+  flex: 5;
+}
+
+.text-center {
+  text-align: center;
+}
+

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>My Synth!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="synth-app">
+
+  <div class="container text-center">
+    <div class="flex-row">
+      <div class="flex f1 text-center">
+        <h1>Welcome To The Synth!!!</h1>
+        
+        <fieldset>
+          <div>{{attack}}</div>
+          <label for="attack-slider">Attack:</label>
+          <input type="range" id="attack-slider" @input="changeAttack">
+        </fieldset>
+        <fieldset>
+          <div>{{release}}</div>
+          <label for="attack-slider">Release:</label>
+          <input type="range" id="attack-slider" @input="changeRelease">
+        </fieldset>
+
+        <fieldset>
+          <div>{{volume}}</div>
+          <label for="attack-slider">Volume:</label>
+          <input type="range" value="0" id="attack-slider" @input="changeVolume">
+        </fieldset>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="app-class.js"></script>
+  <script src="synth.js"></script>
+
+  <script>
+  
+  const keyMap = {
+    a: 440,
+    w: 466,
+    s: 494,
+    d: 523,
+    e: 554,
+    f: 587,
+    t: 622,
+    g: 659,
+    h: 698,
+    u: 740,
+    j: 784,
+    i: 831,
+    k: 880,
+  }
+  
+  const app = new App({
+    target: document.querySelector('#synth-app'),
+    data: {
+      attack: 0.5,
+      release: 0.5,
+      volume: 0,
+      waveType: 'sine',
+      octaveFactor: 1,
+      keyMap: keyMap,
+      oscillators: {},
+    },
+    methods: {
+      changeAttack(e) {        
+        this.attack = e.target.value / 100;
+      },
+      changeRelease(e) {
+        this.release = e.target.value / 100;
+      },
+      changeVolume(e) {
+        this.volume = e.target.value / 100;
+
+      },
+      play(e) {        
+        const key = e.key.toLowerCase();
+        if (this.oscillators[key]) {
+          this.oscillators[key].setVolume(this.volume, this.attack)
+        }
+      },
+      stop(e) {
+        const key = e.key.toLowerCase();
+        if (this.oscillators[key]) {
+          this.oscillators[key].setVolume(0, this.release)
+        }
+      }
+    },
+    mounted() {
+      this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap);
+    },
+    windowListeners: {
+      keydown: 'play',
+      keyup: 'stop',
+    }
+  });
+
+
+
+  </script>
+  
+</body>
+</html>
