@@ -13,23 +13,47 @@
     <div class="flex-row">
       <div class="flex f1 text-center">
         <h1>Welcome To The Synth!!!</h1>
-        
-        <fieldset>
-          <div>{{attack}}</div>
-          <label for="attack-slider">Attack:</label>
-          <input type="range" id="attack-slider" @input="changeAttack">
-        </fieldset>
-        <fieldset>
-          <div>{{release}}</div>
-          <label for="attack-slider">Release:</label>
-          <input type="range" id="attack-slider" @input="changeRelease">
-        </fieldset>
+        <h4>Hit some keys and figure it out.</h4>
+        <div class="flex-row">
+          <div class="flex f1">
+            <div>{{volume}}</div>
+            <label for="volume-slider">Volume:</label>
+            <input type="range" min="1" value="50" id="volume-slider" @input="changeVolume">
+          </div>
+          <div class="flex f1">
+            <div>{{attack}}</div>
+            <label for="attack-slider">Attack:</label>
+            <input type="range" min="1" id="attack-slider" @input="changeAttack">
+          </div>
+          <div class="flex f1">
+            <div>{{release}}</div>
+            <label for="release-slider">Release:</label>
+            <input type="range" min="1" id="release-slider" @input="changeRelease">
+          </div>
+        </div>
 
-        <fieldset>
-          <div>{{volume}}</div>
-          <label for="attack-slider">Volume:</label>
-          <input type="range" value="0" id="attack-slider" @input="changeVolume">
-        </fieldset>
+        <div class="flex-row">
+          <div class="flex f1">
+            <label for="wavetype-select">Change The Wave Type</label>
+            <select id="wavetype-select" @input="changeWaveType">
+              <option value="sine" selected>Sine</option>
+              <option value="square">Square</option>
+              <option value="triangle">Triangle</option>
+              <option value="sawtooth">Sawtooth</option>
+            </select>
+          </div>
+          <div class="flex f1">
+            <label for="octave-factor-select">Change The "Octave Factor"</label>
+            <select id="octave-factor-select" @input="changeOctaveFactor">
+              <option value="2">2</option>
+              <option value="1" selected>1</option>
+              <option value="0.5">0.5</option>
+              <option value="0.25">0.25</option>
+              <option value="0.1">0.1</option>
+            </select>
+          </div>
+        </div>
+
 
       </div>
     </div>
@@ -61,8 +85,8 @@
     data: {
       attack: 0.5,
       release: 0.5,
-      volume: 0,
-      waveType: 'sine',
+      volume: 0.5,
+      waveType: 'sawtoothw',
       octaveFactor: 1,
       keyMap: keyMap,
       oscillators: {},
@@ -76,7 +100,14 @@
       },
       changeVolume(e) {
         this.volume = e.target.value / 100;
-
+      },
+      changeWaveType(e) {
+        this.waveType = e.target.value;
+        this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap);
+      },
+      changeOctaveFactor(e) {
+        this.octaveFactor = e.target.value;
+        this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap);
       },
       play(e) {        
         const key = e.key.toLowerCase();
@@ -89,7 +120,7 @@
         if (this.oscillators[key]) {
           this.oscillators[key].setVolume(0, this.release)
         }
-      }
+      },
     },
     mounted() {
       this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap);
