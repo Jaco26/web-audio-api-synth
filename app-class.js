@@ -13,17 +13,22 @@ const utils = {
     event: /@\w+="\w+"/g,
     handleBar: /{{.+}}/g,
     tagsWithEvents: /<.*?@\w+=".+".*?>/g,
-    tagsWithHandleBarVals: /<.*?>.*{{\w+}}/g,
+    tagsWithJModels: /<.*?j-model=".+".*?>/g,
+    jModel: /j-model="\w+"/g,
+
+    betweenQuotes: /".+"/g
   }
 }
 
 
+
 class App {
-  constructor({ target, template, data = {}, methods = {}, windowListeners = {}, mounted }) {
-    
+  constructor({ target, template, data = {}, methods = {}, windowListeners = {}, mounted = function(){} }) {
+
     this.vDom = {
       data: {},
       listen: {},
+      models: {}
     }
 
     this._target = target;
@@ -68,32 +73,46 @@ class App {
     }, {});
   }
 
+  setJModelListeners() {
+    const { models } = this.vDom;
+    Object.keys(models).forEach(key => {
+      const model = models[key];
+      const targetEl = document.querySelector(`[data-model-id="${model.id}"]`);
+      targetEl.addEventListener('input', (e) => {
+        this._data[key] = e.target.value;
+      })
+    })
+  }
+
   setListeners() {
     if (this._methods && Object.keys(this._methods).length > 0) {
       Object.keys(this.vDom.listen).forEach(key => {
-        const listen = this.vDom.listen[key];        
-        const targetEl = document.querySelector(`[data-listen${listen.n}-id="${listen.id}"]`);        
+        const listen = this.vDom.listen[key];
+        const targetEl = document.querySelector(`[data-listen${listen.n}-id="${listen.id}"]`);
         targetEl.addEventListener(listen.eventName, this._methods[key.slice(1, -1)]);
       });
     }
-
   }
 
   updateTextContent(dataKey) {
-    const vDomElId = this.vDom.data[dataKey];
-    if (vDomElId >= 0) {
-      const newTextContent = utils.unpackObject(dataKey, this._data);
-      document.querySelector(`[data-data-id="${vDomElId}"]`).textContent = newTextContent;
+    if (this.vDom.data[dataKey]) {
+      const vDomElId = this.vDom.data[dataKey].id;
+      if (vDomElId >= 0) {
+        const newTextContent = utils.unpackObject(dataKey, this._data);
+        document.querySelector(`[data-data-id="${vDomElId}"]`).textContent = newTextContent;
+      }
     }
+    
   }
 
   compileTemplate() {
-    const { tagsWithEvents, handleBar, event } = utils.reDict;
+    const { tagsWithJModels, jModel, tagsWithEvents, event, handleBar, betweenQuotes } = utils.reDict;
 
     let template = this._template;
 
     let dataIdCount = 0;
     let listenIdCount = 0;
+    let modelIdCount = 0;
 
     const hdlBarValTags = template.match(handleBar);
     if (hdlBarValTags) {
@@ -103,7 +122,9 @@ class App {
         const data = `data-data-id="${dataIdCount}"`;
         const withHdlBarVal = item.replace(handleBar, `<span ${data}>${hdlBarVal}</span>`);
         const final = withHdlBarVal;
-        this.vDom.data[hdlBar] = dataIdCount;
+        this.vDom.data[hdlBar] = {
+          id: dataIdCount
+        };
         template = template.replace(item, final);
         dataIdCount += 1
       });
@@ -113,8 +134,7 @@ class App {
     if (eventTags) {
       eventTags.forEach(item => {
         const evts = item.match(event);
-        console.log();
-        evts.forEach((evt, i, arr) => {
+        evts.forEach((evt, i) => {
           const eventName = evt.slice(1, evt.indexOf('='));
           const eventHandler = evt.slice(evt.indexOf('=') + 1);
           this.vDom.listen[eventHandler] = {
@@ -122,16 +142,28 @@ class App {
             n: i,
             eventName,
           };
-          template = template.replace(evt, ` data-listen${i}-id="${listenIdCount}"`);          
+          template = template.replace(evt, `data-listen${i}-id="${listenIdCount}"`);
           listenIdCount += 1;
         });
-      });
+      });      
     }
+
+    const jModels = template.match(tagsWithJModels);
+    if (jModels) {
+      jModels.forEach(tag => {
+        const directive = tag.match(jModel)[0];
+        const whatToBindTo = directive.match(betweenQuotes)[0].slice(1, -1);
+        this.vDom.models[whatToBindTo] = {
+          id: modelIdCount,
+        };
+        template = template.replace(directive, `data-model-id="${modelIdCount}"`);
+        modelIdCount += 1;
+      });
+    }    
 
     this._target.innerHTML = template;
     this.setListeners();
+    this.setJModelListeners();
   }
 
-
 }
-

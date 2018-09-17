@@ -28,7 +28,7 @@
           <div class="flex f1">
             <div>{{release}}</div>
             <label for="release-slider">Release:</label>
-            <input type="range" min="1" id="release-slider" @input="changeRelease">
+            <input type="range" min="1" max="200" value="50" id="release-slider" @input="changeRelease">
           </div>
         </div>
 
@@ -54,7 +54,6 @@
           </div>
         </div>
 
-
       </div>
     </div>
   </div>
@@ -63,6 +62,34 @@
   <script src="synth.js"></script>
 
   <script>
+    const otherKeyMap = {
+      a: 123,
+      b: 130,
+      c: 146,
+      d: 164,
+      e: 174,
+      f: 196,
+      g: 220,
+      h: 246,
+      i: 261,
+      j: 293,
+      k: 329,
+      l: 349,
+      m: 392,
+      n: 440,
+      o: 494,
+      p: 523,
+      q: 587,
+      r: 659,
+      s: 698,
+      t: 783,
+      u: 880,
+      v: 987,
+      w: 1046,
+      x: 1174,
+      y: 1318,
+      z: 1396,
+    }
   
   const keyMap = {
     a: 440,
@@ -86,7 +113,7 @@
       attack: 0.5,
       release: 0.5,
       volume: 0.5,
-      waveType: 'sawtoothw',
+      waveType: 'sine',
       octaveFactor: 1,
       keyMap: keyMap,
       oscillators: {},
@@ -109,16 +136,30 @@
         this.octaveFactor = e.target.value;
         this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap);
       },
+      setDistortion(e) {
+        const checked = e.target.checked;   
+        if (checked) {
+          this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap, 800);
+        } else {
+          this.oscillators = mapNotes(this.waveType, this.octaveFactor, this.keyMap);
+        }
+      },
       play(e) {        
         const key = e.key.toLowerCase();
         if (this.oscillators[key]) {
-          this.oscillators[key].setVolume(this.volume, this.attack)
+          this.oscillators[key].forEach(osc => {
+            osc.setVolume(this.volume, this.attack);
+          });
+          // this.oscillators[key].setVolume(this.volume, this.attack)
         }
       },
       stop(e) {
         const key = e.key.toLowerCase();
         if (this.oscillators[key]) {
-          this.oscillators[key].setVolume(0, this.release)
+          this.oscillators[key].forEach(osc => {
+            osc.setVolume(0, this.release);
+          });
+          // this.oscillators[key].setVolume(0, this.release)
         }
       },
     },

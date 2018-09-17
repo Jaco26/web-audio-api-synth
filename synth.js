@@ -30,43 +30,16 @@ class Synth {
     this.gain.gain.linearRampToValueAtTime(val, ctx.currentTime + attackRelease);
   }
 
-  bringTheMud(amount) {
-    const distortionGainNode = ctx.createGain();
-    const distortionNode = ctx.createWaveShaper();
-
-    distortionNode.curve = makeDistortionCurve(amount);    
-    
-    this.oscillator.connect(this.gain);
-    this.gain.connect(distortionGainNode);
-    distortionGainNode.connect(distortionNode);
-    distortionNode.connect(ctx.destination);
-    this.oscillator.start(0);
-  }
-
 }
 
 
-function mapNotes(waveType, octaveFactor, keyFreqMap = {}, distortionAmount) {  
+function mapNotes(waveType, octaveFactor, keyFreqMap = {}) {  
   return Object.keys(keyFreqMap).reduce((accum, key) => {
-    if (distortionAmount) {
-      accum[key] = new Synth(keyFreqMap[key] * octaveFactor, waveType, distortionAmount);
-    } else {
-      accum[key] = new Synth(keyFreqMap[key] * octaveFactor, waveType);
-    }
+    accum[key] = [
+      new Synth(keyFreqMap[key] * octaveFactor, waveType), 
+      new Synth((keyFreqMap[key] / 2) * octaveFactor, waveType),
+      new Synth((keyFreqMap[key] / 3) * octaveFactor, waveType),
+    ];
     return accum;
   }, {});
-}
-
-function makeDistortionCurve(amount) {
-  let k = amount,
-    nSamples = 44100,
-    curve = new Float32Array(nSamples),
-    deg = Math.PI / 180,
-    i = 0,
-    x;
-  for (; i < nSamples; i++) {
-    x = i * 2 / nSamples - 1;
-    curve[i] = (30 + k) * x * 20 * deg / (Math.PI + amount * Math.abs(x));   
-  }
-  return curve;
 }
